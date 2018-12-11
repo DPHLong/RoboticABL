@@ -15,26 +15,21 @@ def controller(x_want, x_is, Kp):
 	return Kp * (x_want - x_is)
 
 def run(data):
-	t = Timer()
-
 	global count
 	count += 1
 	if count % 10 != 0: return
 
-	t.start()
 	wp = to_white_points(data)
 	assert(len(wp)>0)
 
 	m, c = ransac(wp)
 
 	center = 120
-	offset = (center - c) / m
+	offset = (150 - c) / m
 	print(offset)
 
 	angle_set = -controller(center, offset, 0.167)
 	if(abs(angle_set-get_steering())>1.0): set_steering(angle_set)
-	#print("offset")
-	#print("total:" + str(t.elapsed_time()))
 
 
 def main(args):
