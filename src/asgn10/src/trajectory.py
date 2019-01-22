@@ -2,7 +2,7 @@
 
 import numpy as np
 import math
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 class Line:
 	p1 = np.array([0.0, 0.0])
@@ -115,7 +115,8 @@ def closest_point(trj, point, return_closest_i = False):
 def closest_point_LookAhead(trj, point, dist):
 	i = closest_point(trj, point, return_closest_i = True)
 	i_get = (i + (dist / trj.total_length)) % 1.0
-	return trj.get_point(i_get)
+	return trj.get_point(i_get), trj.get_point(i)
+	# return trj.get_point(i_get)
 
 def get_shape_length(shape):
 	it = 1.0 / 1000.0

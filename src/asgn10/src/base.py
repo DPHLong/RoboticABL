@@ -8,6 +8,9 @@ import cv2
 from std_msgs.msg import Int16, UInt8, UInt16
 from angle_convert import angle_convert
 
+pub_steering = rospy.Publisher("/steering", UInt8, queue_size=1, latch=True)
+pub_speed = rospy.Publisher("/manual_control/speed", Int16, queue_size=1, latch=True)
+
 steering_angle = 0
 curret_speed = 0
 
@@ -21,8 +24,9 @@ def set_speed(speed):
 def set_steering(steering):
 	global steering_angle
 	steering_angle = steering
+	steering = angle_convert(steering)
 	print("Setting steering:" + str(steering))
-	pub_steering.publish(angle_convert(steering))
+	pub_steering.publish(steering)
 
 def get_steering():
 	global steering_angle
@@ -51,5 +55,4 @@ def angle(v1, v2):
 	if v1[0]*v2[1] - v1[1]*v2[0] < 0: return -a #cross product for negative angles
 	return a
 
-pub_steering = rospy.Publisher("/steering", UInt8, queue_size=1, latch=True)
-pub_speed = rospy.Publisher("/manual_control/speed", Int16, queue_size=1, latch=True)
+
