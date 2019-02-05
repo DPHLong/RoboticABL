@@ -3,6 +3,8 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from base import clamp, get_distance
+
 
 class Line:
 	p1 = np.array([0.0, 0.0])
@@ -47,7 +49,7 @@ class Trajectory:
 		self.shape_weights = [x / self.total_length for x in self.shape_lengths]
 
 	def get_shape_and_index(self, n):
-		n = clamp(0.0, 1.0, n)
+		n = max(0.0, n % 1.0)
 		q = n
 		i = 0
 		for i in range(len(self.shape_weights)):
@@ -58,29 +60,27 @@ class Trajectory:
 
 	def get_point(self, n):
 		s, i = self.get_shape_and_index(n)
-		#print(s.get_point(i))
 		return s.get_point(i)
 
-def clamp(min_val, max_val, val):
-	return min(max_val, max(min_val, val))
-
-def plot_point(canvas, point, color_='r'):
-	canvas.scatter(point[0], point[1], color=color_)
-	plt.show(block=False)
-
-def get_distance(p1, p2):
-  return math.sqrt((p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]))
-
 def closest_point(trj, point, return_closest_i = False):
-	rul = 1000.0 #resulution until linear interpolation
+	samples = 15
+	s_it = 1.0 / samples
+
+	dsts = [get_distance(trj.get_point(i*s_it), point) for i in range(0, samples)]
+
+	#as shape is convex we know the closest point is somewhere in [c-s_it, c+s_it]
+	c = dsts.index(min(dsts)) * s_it
+
+	#previous implementation follows
+	rul = 100.0 #resulution until linear interpolation
 	it = 1.0 / rul
 
 	#get closest point
 	min_dist = 999999999.0
+	i = c - s_it
+	closest_i = i
 	closest_point = [-1, -1]
-	closest_i = 0.0
-	i = 0.0
-	while(i<=1.0):
+	while(i<=c + s_it):
 		p = trj.get_point(i)
 		dist = get_distance(p, point)
 		if dist<min_dist:
@@ -127,7 +127,7 @@ def get_shape_length(shape):
 		i += it
 	return total_dist
 
-
+"""
 #singular line in the middle
 s_line = Line([64.0, 208.0], [64.0, 372.0])
 
@@ -150,6 +150,7 @@ bez2 = Bezier([337.0, 204.0], [336.0, 33.0], [95.0, 33.0], [95.0, 204.0])
 line2 = Line([95.0, 204.0], [95.0, 395.0])
 
 trj = Trajectory([bez1, line1, bez2, line2])
+"""
 
 #inner lane
 bez1 = Bezier([82.0, 395.0], [82.0, 592.0], [353.0, 592.0], [353.0, 395.0])
@@ -162,38 +163,7 @@ lane1 = Trajectory([bez1, line1, bez2, line2])
 #outer lane
 bez1 = Bezier([47.0, 395.0], [47.0, 632.0], [384.0, 632.0], [384.0, 395.0])
 line1 = Line([384.0, 395.0], [384.0, 204.0])
-bez2 = Bezier([384.0, 204.0], [384.0, -31.0], [47.0, -31.0], [47.0, 204.0])
+bez2 = Bezier([384.0, 204.0], [384.0, -31.0], [55.0, -23.0], [47.0, 204.0])
 line2 = Line([47.0, 204.0], [47.0, 395.0])
 
 lane2 = Trajectory([bez1, line1, bez2, line2])
-
-print(closest_point_LookAhead(lane1, [300,200], 0.5))
-print(closest_point_LookAhead(lane1, [100,100], 0.2))
-
-"""
-ax = plt.subplots(1, 1, figsize=(4.3, 6), dpi=80, facecolor='w')[1]
-ax.set_xlim([0,430])
-ax.set_ylim([0,600])
-#ax.cla()
-
-i = 0
-it = 15
-while i<1500:
-	plot_point(ax, closest_point_LookAhead(trj, [0,0], i))
-	i+=it
-plt.show()
-
-i = 0
-it = 0.01
-while(i <= 1.0):
-	plot_point(ax, trj.get_point(i))
-	plot_point(ax, o_trj.get_point(i))
-	#plot_point(ax, s_trj.get_point(i))
-	plot_point(ax, lane1.get_point(i))
-	plot_point(ax, lane2.get_point(i))
-	i = i + it
-
-
-plt.show()
-"""
-
